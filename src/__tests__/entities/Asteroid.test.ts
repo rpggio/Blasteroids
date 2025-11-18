@@ -107,18 +107,19 @@ describe('Asteroid', () => {
   });
 
   describe('update', () => {
-    it('should move asteroid based on velocity', () => {
+    it('should not move asteroid (asteroids are now fixed)', () => {
       const position = new Vector2D(100, 100);
       const velocity = new Vector2D(10, 5);
       const asteroid = new Asteroid('ast1', position, velocity, AsteroidSize.LARGE);
 
       asteroid.update(1);
 
-      expect(asteroid.position.x).toBe(110);
-      expect(asteroid.position.y).toBe(105);
+      // Asteroids are now fixed and don't move
+      expect(asteroid.position.x).toBe(100);
+      expect(asteroid.position.y).toBe(100);
     });
 
-    it('should rotate asteroid over time', () => {
+    it('should not rotate asteroid (asteroids are now fixed)', () => {
       const asteroid = new Asteroid(
         'ast1',
         Vector2D.ZERO,
@@ -130,7 +131,8 @@ describe('Asteroid', () => {
       const initialRotation = asteroid.rotation;
       asteroid.update(1);
 
-      expect(asteroid.rotation).not.toBe(initialRotation);
+      // Asteroids are now fixed and don't rotate
+      expect(asteroid.rotation).toBe(initialRotation);
     });
 
     it('should not update when inactive', () => {

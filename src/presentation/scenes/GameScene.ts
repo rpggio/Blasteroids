@@ -23,34 +23,49 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
+    // Get viewport dimensions
+    const viewportWidth = this.scale.width;
+    const viewportHeight = this.scale.height;
+
+    // Make world 5x larger than viewport
+    const worldWidth = viewportWidth * 5;
+    const worldHeight = viewportHeight * 5;
+
     // Initialize game manager
     this.gameManager = new GameManager({
-      worldWidth: 800,
-      worldHeight: 600,
+      worldWidth,
+      worldHeight,
     });
+
+    // Set world bounds for camera
+    this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
 
     // Create graphics object for drawing
     this.graphics = this.add.graphics();
 
-    // Create UI text
+    // Create UI text - fixed to camera
     this.scoreText = this.add.text(16, 16, 'SCORE: 0', {
       fontSize: '20px',
       color: '#ffffff',
     });
+    this.scoreText.setScrollFactor(0);
 
     this.livesText = this.add.text(16, 46, 'LIVES: 3', {
       fontSize: '20px',
       color: '#ffffff',
     });
+    this.livesText.setScrollFactor(0);
 
     this.levelText = this.add.text(16, 76, 'LEVEL: 1', {
       fontSize: '20px',
       color: '#ffffff',
     });
+    this.levelText.setScrollFactor(0);
 
     // Set up mouse input
     this.input.on('pointerdown', this.handlePointerDown, this);
     this.input.on('pointerup', this.handlePointerUp, this);
+    this.input.on('pointermove', this.handlePointerMove, this);
 
     // Prevent context menu on right-click
     this.input.mouse?.disableContextMenu();
@@ -65,6 +80,12 @@ export class GameScene extends Phaser.Scene {
     // Update game logic
     this.gameManager.update(deltaSeconds);
 
+    // Update camera to follow ship
+    const ship = this.gameManager.getShip();
+    if (ship && ship.active) {
+      this.cameras.main.centerOn(ship.position.x, ship.position.y);
+    }
+
     // Render everything
     this.render();
 
@@ -78,7 +99,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private handlePointerDown(pointer: Phaser.Input.Pointer): void {
-    const worldPosition = new Vector2D(pointer.x, pointer.y);
+    // Convert screen position to world position
+    const worldPosition = new Vector2D(pointer.worldX, pointer.worldY);
 
     if (pointer.leftButtonDown()) {
       this.gameManager.handleMouseDown('left', worldPosition);
@@ -92,6 +114,12 @@ export class GameScene extends Phaser.Scene {
       // Right button
       this.gameManager.handleMouseUp('right');
     }
+  }
+
+  private handlePointerMove(pointer: Phaser.Input.Pointer): void {
+    // Update mouse position in world coordinates
+    const worldPosition = new Vector2D(pointer.worldX, pointer.worldY);
+    this.gameManager.updateMousePosition(worldPosition);
   }
 
   private render(): void {
@@ -213,17 +241,23 @@ export class GameScene extends Phaser.Scene {
   }
 
   private showGameOver(): void {
-    this.gameOverText = this.add.text(400, 300, 'GAME OVER', {
+    // Get center of viewport
+    const centerX = this.scale.width / 2;
+    const centerY = this.scale.height / 2;
+
+    this.gameOverText = this.add.text(centerX, centerY, 'GAME OVER', {
       fontSize: '64px',
       color: '#ff0000',
     });
     this.gameOverText.setOrigin(0.5);
+    this.gameOverText.setScrollFactor(0);
 
-    const restartText = this.add.text(400, 370, 'Click to restart', {
+    const restartText = this.add.text(centerX, centerY + 70, 'Click to restart', {
       fontSize: '24px',
       color: '#ffffff',
     });
     restartText.setOrigin(0.5);
+    restartText.setScrollFactor(0);
 
     this.input.once('pointerdown', () => {
       this.scene.restart();

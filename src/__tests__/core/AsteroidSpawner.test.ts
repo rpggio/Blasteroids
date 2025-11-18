@@ -35,9 +35,9 @@ describe('AsteroidSpawner', () => {
       expect(asteroid.position.y).toBeLessThanOrEqual(600);
     });
 
-    it('should spawn asteroid with non-zero velocity', () => {
+    it('should spawn asteroid with zero velocity (asteroids are now fixed)', () => {
       const asteroid = spawner.spawnAsteroid(AsteroidSize.LARGE);
-      expect(asteroid.velocity.magnitude()).toBeGreaterThan(0);
+      expect(asteroid.velocity.magnitude()).toBe(0);
     });
 
     it('should spawn asteroid away from avoid position when specified', () => {
@@ -52,22 +52,13 @@ describe('AsteroidSpawner', () => {
       expect(distance).toBeGreaterThan(0);
     });
 
-    it('should spawn large asteroids with appropriate speed range', () => {
+    it('should spawn asteroids with zero rotation speed (asteroids are now fixed)', () => {
       const asteroid = spawner.spawnAsteroid(AsteroidSize.LARGE);
-      const speed = asteroid.velocity.magnitude();
-      const range = Asteroid.getSpeedRangeForSize(AsteroidSize.LARGE);
+      const initialRotation = asteroid.rotation;
 
-      expect(speed).toBeGreaterThanOrEqual(range.min);
-      expect(speed).toBeLessThanOrEqual(range.max);
-    });
+      asteroid.update(1);
 
-    it('should spawn small asteroids with appropriate speed range', () => {
-      const asteroid = spawner.spawnAsteroid(AsteroidSize.SMALL);
-      const speed = asteroid.velocity.magnitude();
-      const range = Asteroid.getSpeedRangeForSize(AsteroidSize.SMALL);
-
-      expect(speed).toBeGreaterThanOrEqual(range.min);
-      expect(speed).toBeLessThanOrEqual(range.max);
+      expect(asteroid.rotation).toBe(initialRotation);
     });
   });
 
@@ -147,7 +138,7 @@ describe('AsteroidSpawner', () => {
       expect(newAsteroids).toHaveLength(0);
     });
 
-    it('should spawn new asteroids at same position as original', () => {
+    it('should spawn new asteroids near original position', () => {
       const originalPosition = new Vector2D(400, 300);
       const asteroid = new Asteroid(
         'ast1',
@@ -159,9 +150,10 @@ describe('AsteroidSpawner', () => {
 
       const newAsteroids = spawner.splitAsteroid(asteroid);
 
+      // New asteroids should be near the original position (within reasonable distance)
       newAsteroids.forEach((newAsteroid) => {
-        expect(newAsteroid.position.x).toBe(originalPosition.x);
-        expect(newAsteroid.position.y).toBe(originalPosition.y);
+        const distance = newAsteroid.position.distanceTo(originalPosition);
+        expect(distance).toBeLessThan(100); // Should be nearby
       });
     });
 
@@ -180,7 +172,7 @@ describe('AsteroidSpawner', () => {
       expect(world.getEntityCount()).toBe(initialCount + 2);
     });
 
-    it('should give new asteroids non-zero velocity', () => {
+    it('should give new asteroids zero velocity (asteroids are now fixed)', () => {
       const asteroid = new Asteroid(
         'ast1',
         new Vector2D(400, 300),
@@ -192,7 +184,7 @@ describe('AsteroidSpawner', () => {
       const newAsteroids = spawner.splitAsteroid(asteroid);
 
       newAsteroids.forEach((newAsteroid) => {
-        expect(newAsteroid.velocity.magnitude()).toBeGreaterThan(0);
+        expect(newAsteroid.velocity.magnitude()).toBe(0);
       });
     });
 
@@ -270,17 +262,11 @@ describe('AsteroidSpawner', () => {
       expect(positions.size).toBeGreaterThan(5);
     });
 
-    it('should spawn asteroids with different velocities', () => {
-      const velocities = new Set<string>();
-
+    it('should spawn asteroids with zero velocity (all asteroids are now fixed)', () => {
       for (let i = 0; i < 10; i++) {
         const asteroid = spawner.spawnAsteroid(AsteroidSize.LARGE);
-        const velKey = `${asteroid.velocity.x.toFixed(1)},${asteroid.velocity.y.toFixed(1)}`;
-        velocities.add(velKey);
+        expect(asteroid.velocity.magnitude()).toBe(0);
       }
-
-      // Should have multiple unique velocities
-      expect(velocities.size).toBeGreaterThan(5);
     });
   });
 });

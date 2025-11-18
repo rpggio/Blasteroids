@@ -61,9 +61,30 @@ export class Ship extends Entity {
   /**
    * Update ship physics
    */
-  update(deltaTime: number): void {
+  update(deltaTime: number, mousePosition?: Vector2D): void {
     if (!this.active) {
       return;
+    }
+
+    // Rotate ship to face mouse position if provided
+    if (mousePosition) {
+      const directionToMouse = mousePosition.subtract(this.position);
+      const targetRotation = directionToMouse.angle();
+
+      // Smoothly rotate towards target at the limit of rotation speed
+      let rotationDiff = targetRotation - this.rotation;
+
+      // Normalize rotation difference to [-PI, PI]
+      while (rotationDiff > Math.PI) rotationDiff -= Math.PI * 2;
+      while (rotationDiff < -Math.PI) rotationDiff += Math.PI * 2;
+
+      // Apply rotation at the limit of rotation speed
+      const maxRotationThisFrame = this.rotationSpeed * deltaTime;
+      if (Math.abs(rotationDiff) <= maxRotationThisFrame) {
+        this.rotation = targetRotation;
+      } else {
+        this.rotation += Math.sign(rotationDiff) * maxRotationThisFrame;
+      }
     }
 
     // Handle acceleration towards target
@@ -74,12 +95,6 @@ export class Ship extends Entity {
       // Apply acceleration
       const acceleration = directionToTarget.multiply(this.accelerationMagnitude * deltaTime);
       this.velocity = this.velocity.add(acceleration);
-
-      // Rotate ship to face direction of movement if moving
-      if (this.velocity.magnitude() > 0.1) {
-        const targetRotation = this.velocity.angle();
-        this.rotation = targetRotation;
-      }
     }
 
     // Apply drag (framerate-independent exponential decay)

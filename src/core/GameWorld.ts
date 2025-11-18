@@ -31,6 +31,7 @@ export class GameWorld {
   private currentState: GameState;
   private currentScore: number;
   private currentLevel: number;
+  private mousePosition: Vector2D | null;
 
   constructor(config: GameConfig) {
     this.config = config;
@@ -39,6 +40,7 @@ export class GameWorld {
     this.currentState = GameState.READY;
     this.currentScore = 0;
     this.currentLevel = 1;
+    this.mousePosition = null;
   }
 
   /**
@@ -129,6 +131,13 @@ export class GameWorld {
   }
 
   /**
+   * Set the mouse position for ship rotation
+   */
+  setMousePosition(position: Vector2D | null): void {
+    this.mousePosition = position;
+  }
+
+  /**
    * Update all entities and handle game logic
    * @param deltaTime Time since last frame in seconds
    */
@@ -140,7 +149,12 @@ export class GameWorld {
     // Update all entities
     for (const entity of this.entities.values()) {
       if (entity.active) {
-        entity.update(deltaTime);
+        // Pass mouse position to ship for rotation
+        if (entity.getType() === 'SHIP') {
+          (entity as any).update(deltaTime, this.mousePosition);
+        } else {
+          entity.update(deltaTime);
+        }
       }
     }
 
