@@ -26,14 +26,14 @@ export class AsteroidSpawner {
   }
 
   /**
-   * Spawn a single asteroid with random position and velocity
+   * Spawn a single asteroid with random position - asteroids are now fixed
    */
   spawnAsteroid(size: AsteroidSize, avoidPosition?: Vector2D): Asteroid {
     const position = this.getRandomPosition(avoidPosition);
-    const velocity = this.getRandomVelocity(size);
+    const velocity = Vector2D.ZERO; // Asteroids are now fixed
 
     const id = this.gameWorld.generateEntityId('asteroid');
-    const asteroid = new Asteroid(id, position, velocity, size);
+    const asteroid = new Asteroid(id, position, velocity, size, { rotationSpeed: 0 });
 
     this.gameWorld.addEntity(asteroid);
     return asteroid;
@@ -65,20 +65,21 @@ export class AsteroidSpawner {
     }
 
     const newAsteroids: Asteroid[] = [];
-    const baseVelocity = asteroid.velocity;
 
     for (let i = 0; i < this.config.splitCount!; i++) {
-      // Create velocity perpendicular to original velocity
+      // Create position offset from original asteroid
       const angle = (Math.PI * 2 * i) / this.config.splitCount! + Math.random() * 0.5;
-      const speed = this.getRandomSpeed(smallerSize);
-      const velocity = Vector2D.fromAngle(angle, speed);
+      const offsetDistance = Asteroid.getRadiusForSize(asteroid.getSize()) * 0.5;
+      const offset = Vector2D.fromAngle(angle, offsetDistance);
+      const position = asteroid.position.add(offset);
 
       const id = this.gameWorld.generateEntityId('asteroid');
       const newAsteroid = new Asteroid(
         id,
-        asteroid.position.clone(),
-        velocity,
-        smallerSize
+        position,
+        Vector2D.ZERO, // Asteroids are now fixed
+        smallerSize,
+        { rotationSpeed: 0 }
       );
 
       this.gameWorld.addEntity(newAsteroid);

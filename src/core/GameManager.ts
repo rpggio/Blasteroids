@@ -29,6 +29,7 @@ export class GameManager {
   private collisionManager: CollisionManager;
   private lives: number;
   private maxLives: number;
+  private mousePosition: Vector2D | null;
 
   constructor(config: GameManagerConfig = {}) {
     const worldWidth = config.worldWidth ?? 800;
@@ -51,6 +52,7 @@ export class GameManager {
 
     this.lives = 3;
     this.maxLives = 3;
+    this.mousePosition = null;
 
     // Set collision handler in world
     this.world.setCollisionHandler(() => this.collisionManager.checkCollisions());
@@ -167,6 +169,9 @@ export class GameManager {
    * Update the game state
    */
   update(deltaTime: number): void {
+    // Set mouse position in world for ship rotation
+    this.world.setMousePosition(this.mousePosition);
+
     // Update world (which updates all entities and handles collisions)
     this.world.update(deltaTime);
 
@@ -180,15 +185,10 @@ export class GameManager {
       this.ship.wrapAroundBounds(this.world.worldWidth, this.world.worldHeight);
     }
 
-    // Handle world wrapping for asteroids
-    const allEntities = this.world.getAllEntities();
-    allEntities.forEach(entity => {
-      if (entity.active && entity.getType() !== 'BULLET') {
-        entity.wrapAroundBounds(this.world.worldWidth, this.world.worldHeight);
-      }
-    });
+    // Asteroids are now fixed and don't need wrapping
 
     // Remove bullets that are out of bounds
+    const allEntities = this.world.getAllEntities();
     allEntities.forEach(entity => {
       if (entity instanceof Bullet && entity.active) {
         if (entity.isOutOfBounds(this.world.worldWidth, this.world.worldHeight)) {
@@ -199,6 +199,13 @@ export class GameManager {
 
     // Check if level is complete (do this once per update, after all collision processing)
     this.checkLevelComplete();
+  }
+
+  /**
+   * Update the mouse position for ship rotation
+   */
+  updateMousePosition(position: Vector2D): void {
+    this.mousePosition = position;
   }
 
   /**

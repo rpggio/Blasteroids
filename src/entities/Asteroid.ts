@@ -62,18 +62,14 @@ export class Asteroid extends Entity {
   }
 
   /**
-   * Update asteroid position and rotation
+   * Update asteroid - asteroids are now fixed and don't move or rotate
    */
   update(deltaTime: number): void {
     if (!this.active) {
       return;
     }
 
-    // Update position
-    this.position = this.position.add(this.velocity.multiply(deltaTime));
-
-    // Update rotation
-    this.rotation += this.rotationSpeed * deltaTime;
+    // Asteroids are now fixed - no movement or rotation
   }
 
   /**
